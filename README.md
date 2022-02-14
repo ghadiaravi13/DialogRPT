@@ -1,3 +1,14 @@
+# Run Commands
+
+```bash
+# For DialogRPT
+python src/generation.py play -pg=restore/medium_ft.pkl -pr=restore/updown.pth
+python src/generation.py test --path_test=doc/toy.tsv -pg=restore/medium_ft.pkl -pr=restore/updown.pth --topp 0.8 --n_hyp 1
+
+# For DialoGPT
+python src/generation.py test --path_test=doc/toy.tsv -pg=restore/medium_ft.pkl --topp 0.8 --n_hyp 1
+```
+
 <p align="center">
     <br>
     <img src="doc/icon.png" width="400"/>
