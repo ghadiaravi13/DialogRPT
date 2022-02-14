@@ -178,9 +178,14 @@ def test(model, path_in, wt_ranker, params, max_n):
     for i, line in enumerate(open(path_in, encoding='utf-8')):
         print('processing %i-th context'%i)
         cxt = line.strip('\n').split('\t')[0]
-        ret = model.predict(cxt, wt_ranker, **params)
-        cc = [cxt] + [tup[-1] for tup in ret]
-        lines.append('\t'.join(cc))
+        if wt_ranker is None:
+            ret = model.predict(cxt, **params)
+        else:
+            ret = model.predict(cxt, wt_ranker, params)
+        # cc = [cxt] + [tup[-1] for tup in ret]
+        # Only print top response
+        cc = [cxt] + [ret[0][-1]]
+        lines.append('__Eou__'.join(cc))
         if i == max_n:
             break
     path_out = path_in + '.hyps'
@@ -219,12 +224,18 @@ if __name__ == "__main__":
 
     if args.path_ranker is None:
         model = generator
+        print(model)
+        if args.task == 'play':
+            model.play(params)
+        elif args.task == 'test':
+            test(model, args.path_test, None, params, args.max_n)
     else:
         from score import get_model
         ranker = get_model(args.path_ranker, cuda)
         model = Integrated(generator, ranker)
 
-    if args.task == 'play':
-        model.play(args.wt_ranker, params)
-    elif args.task == 'test':
-        test(model, args.path_test, params, args.max_n)
+        print(model)
+        if args.task == 'play':
+            model.play(args.wt_ranker, params)
+        elif args.task == 'test':
+            test(model, args.path_test, args.wt_ranker, params, args.max_n)
