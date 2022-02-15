@@ -178,13 +178,17 @@ def test(model, path_in, wt_ranker, params, max_n):
     for i, line in enumerate(open(path_in, encoding='utf-8')):
         print('processing %i-th context'%i)
         cxt = line.strip('\n').split('\t')[0]
-        if wt_ranker is None:
-            ret = model.predict(cxt, **params)
-        else:
-            ret = model.predict(cxt, wt_ranker, params)
-        # cc = [cxt] + [tup[-1] for tup in ret]
-        # Only print top response
-        cc = [cxt] + [ret[0][-1]]
+        try:
+            if wt_ranker is None:
+                ret = model.predict(cxt, **params)
+            else:
+                ret = model.predict(cxt, wt_ranker, params)
+            # cc = [cxt] + [tup[-1] for tup in ret]
+            # Only print top response
+            cc = [cxt] + [ret[0][-1]]
+        except:
+            cc = [cxt, 'error']
+            print("FAILED TO GENERATE RESPONSE")
         lines.append('__Eou__'.join(cc))
         if i == max_n:
             break
