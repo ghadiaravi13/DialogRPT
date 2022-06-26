@@ -1,6 +1,7 @@
 import sys
+sys.path.append('DialogRPT/src')
+sys.path.append('2021-R3-Baselines/PrLM')
 import numpy as np
-sys.path.append('datautils/')
 
 TRAIN_BS = int(sys.argv[1])
 VALID_BS = int(sys.argv[2])
@@ -8,12 +9,24 @@ LR = float(sys.argv[3])
 EPOCHS = int(sys.argv[4])
 PATIENCE = int(sys.argv[5])
 
-print(f'Finetuning Blender3B on DD with LR:{LR} and EPOCHS:{EPOCHS}')
+print(f'Finetuning DGPT on DD with LR:{LR} and EPOCHS:{EPOCHS}')
 
 from torch.utils.data import Dataset, DataLoader
 
 C_MAX_LEN = 100
 R_MAX_LEN = 28
+
+## Model ##
+from transformers19 import GPT2Tokenizer, GPT2LMHeadModel, GPT2Config
+import torch
+tok = GPT2Tokenizer.from_pretrained('gpt2')
+model_config = GPT2Config(n_embd=1024, n_layer=24, n_head=16)        
+model = GPT2LMHeadModel(model_config)
+weights = torch.load('restore/medium_ft.pkl')
+if "lm_head.decoder.weight" in weights:
+    weights["lm_head.weight"] = weights["lm_head.decoder.weight"]
+    weights.pop("lm_head.decoder.weight",None)
+model.load_state_dict(weights)
 
 class Custom_Dataset(Dataset):
   def __init__(self,tsv_file):
@@ -39,6 +52,7 @@ class Custom_Dataset(Dataset):
   
   def __len__(self):
     return len(self.data)
+
 
 
 def finetune(model,lr,epochs,reset_patience=5):
@@ -104,7 +118,7 @@ def validate(model,e):
   steps = 0
   agg_loss = 0
 
-  for b in valid_dataloader:
+  for b in valid_dl:
     loss = model(input_ids=b['inp'].cuda(),labels=b['label'].cuda())[0]
     agg_loss += loss.item()
     steps+=1
@@ -119,17 +133,7 @@ valid_dataset = Custom_Dataset('preprocessed_data/DD/dd_validation_input.tsv')
 train_dl = DataLoader(train_dataset,batch_size=TRAIN_BS,shuffle=True)
 valid_dl = DataLoader(valid_dataset,batch_size=VALID_BS,shuffle=True)
 
-## Model ##
-from transformers19 import GPT2Tokenizer, GPT2LMHeadModel, GPT2Config
-import torch
-tok = GPT2Tokenizer.from_pretrained('gpt2')
-model_config = GPT2Config(n_embd=1024, n_layer=24, n_head=16)        
-model = GPT2LMHeadModel(model_config)
-weights = torch.load('restore/medium_ft.pkl')
-if "lm_head.decoder.weight" in weights:
-    weights["lm_head.weight"] = weights["lm_head.decoder.weight"]
-    weights.pop("lm_head.decoder.weight",None)
-model.load_state_dict(weights)
+
 
 
 import torch
