@@ -80,13 +80,7 @@ def finetune(model,lr,epochs,reset_patience=5):
     if val_loss<best_loss:
       patience = reset_patience
       best_loss = val_loss
-      torch.save({
-            'epoch': e,
-            'model_state_dict': model.state_dict(),
-            'optimizer_state_dict': optimizer.state_dict(),
-            'train_loss': train_loss,
-            'val_loss': val_loss,
-            }, f'DGPT_ftune_dd_chkpt_best_{e}.pth.tar')
+      torch.save(model.state_dict(), f'DGPT_ftune_dd_chkpt_best_{e}.pkl')
     else:
       patience-=1
     if patience<0:
