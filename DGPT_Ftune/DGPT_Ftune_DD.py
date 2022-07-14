@@ -52,7 +52,7 @@ class Custom_Dataset(Dataset):
       #r = torch.nn.functional.pad(r,(0,R_MAX_LEN-r.shape[1]),"constant",0)
       lab[:,:min(p,C_MAX_LEN)] = -100
       lab[:,inp.shape[1]+1:] = -100
-      mask = torch.zeros((inp_1.shape[1]-1),dtype=torch.long)
+      mask = torch.zeros((inp_1.shape[1]),dtype=torch.long)
       mask[:inp.shape[1]+1] = 1
       self.data.append({'con':ctx.shape[1],'res':d.shape[1]-p-1,'len':inp.shape[1]+1,'mask':mask,'inp':torch.LongTensor(inp_1)[0,:],'label':torch.LongTensor(lab)[0,:]})
 
